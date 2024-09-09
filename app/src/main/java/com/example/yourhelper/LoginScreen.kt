@@ -74,7 +74,11 @@ fun LoginScreen(){
                 containerColor = Color.Black
             )
         ) {
-            Text(text = "Login")
+            Text(text = "Login",
+                modifier = Modifier.clickable {
+                    var navigate = Intent(context, ContentActivity::class.java);
+                    context.startActivity(navigate);
+                })
         }
 
         Spacer(modifier = Modifier.height(10.dp))

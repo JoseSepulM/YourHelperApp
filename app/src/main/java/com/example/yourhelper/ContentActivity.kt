@@ -9,18 +9,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
 
-class MainActivity : ComponentActivity() {
+class ContentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen()
+            ContentScreen()
         }
     }
 }
 
 @Preview
 @Composable
-fun vistaMain(){
-    LoginScreen()
+fun vistaPrevia(){
+    ContentScreen()
 }

@@ -1,59 +1,48 @@
 package com.example.yourhelper
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.Switch
-
-
-
-data class Periferico(
-    val nombre: String,
-    val activo: Boolean,
-    val conexion: String,
-    val type : String
-);
-
-fun Periferico.toggleActivo(): Periferico {
-    return this.copy(activo = !this.activo)
-}
-
-
-val perifericos = listOf(
-    Periferico("Sensor de gas", true, "bluetooth", "Casa"),
-    Periferico("Sensor de movimiento", false, "bluetooth", "Casa"),
-    Periferico("Aviso llamadas", false, "bluetooth", "Personal"),
-    Periferico("Ampolleta", true, "bluetooth", "Casa")
-)
-
+import com.example.yourhelper.firebase.ItemPeriferico
+import kotlinx.coroutines.launch
+import com.example.yourhelper.firebase.PerifericoRepository
 
 @Composable
-fun ContentScreen(){
+fun ContentScreen() {
     val gradientColor = listOf(
         Color(0xFFFFFFFF),
         Color(0xFF00BCD4)
     )
 
-    val context = LocalContext.current;
+    var perifericos by remember { mutableStateOf<List<ItemPeriferico>>(emptyList()) }
+    var isModalOpen by remember { mutableStateOf(false) }
 
-    Column (
+    var newNombre by remember { mutableStateOf(TextFieldValue("")) }
+    var newConexion by remember { mutableStateOf(TextFieldValue("")) }
+    var newType by remember { mutableStateOf(TextFieldValue("")) }
+    var newActivo by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            val fetchedPerifericos = PerifericoRepository.getAllPerifericos() ?: emptyList()
+            perifericos = fetchedPerifericos
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(gradientColor)),
@@ -69,11 +58,72 @@ fun ContentScreen(){
                 PerifericoCard(periferico)
             }
         }
+
+        Button(onClick = { isModalOpen = true }) {
+            Text("More")
+        }
+
+        if (isModalOpen) {
+            AlertDialog(
+                onDismissRequest = { isModalOpen = false },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                val nuevoPeriferico = ItemPeriferico(
+                                    nombre = newNombre.text,
+                                    activo = newActivo,
+                                    conexion = newConexion.text,
+                                    type = newType.text
+                                )
+                                PerifericoRepository.addPeriferico(nuevoPeriferico)
+                                perifericos = perifericos + nuevoPeriferico
+                                isModalOpen = false
+                            }
+                        }
+                    ) {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { isModalOpen = false }) {
+                        Text("Cancelar")
+                    }
+                },
+                title = { Text("Agregar Periférico") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newNombre,
+                            onValueChange = { newNombre = it },
+                            label = { Text("Nombre") }
+                        )
+                        OutlinedTextField(
+                            value = newConexion,
+                            onValueChange = { newConexion = it },
+                            label = { Text("Conexión") }
+                        )
+                        OutlinedTextField(
+                            value = newType,
+                            onValueChange = { newType = it },
+                            label = { Text("Tipo") }
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Activo")
+                            Switch(
+                                checked = newActivo,
+                                onCheckedChange = { newActivo = it }
+                            )
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun PerifericoCard(periferico: Periferico) {
+fun PerifericoCard(periferico: ItemPeriferico) {
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -96,11 +146,8 @@ fun PerifericoCard(periferico: Periferico) {
             )
             Switch(
                 checked = periferico.activo,
-                onCheckedChange = { checked ->
-                    periferico.toggleActivo();
-                }
+                onCheckedChange = { }
             )
-
         }
     }
 }

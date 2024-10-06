@@ -1,6 +1,8 @@
 package com.example.yourhelper
 
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +26,9 @@ fun ContentScreen() {
         Color(0xFFFFFFFF),
         Color(0xFF00BCD4)
     )
+
+    val context = LocalContext.current;
+
 
     var perifericos by remember { mutableStateOf<List<ItemPeriferico>>(emptyList()) }
     var isModalOpen by remember { mutableStateOf(false) }
@@ -49,6 +54,9 @@ fun ContentScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Button(onClick = { isModalOpen = true }) {
+            Text("More")
+        }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -59,9 +67,7 @@ fun ContentScreen() {
             }
         }
 
-        Button(onClick = { isModalOpen = true }) {
-            Text("More")
-        }
+
 
         if (isModalOpen) {
             AlertDialog(
@@ -124,6 +130,7 @@ fun ContentScreen() {
 
 @Composable
 fun PerifericoCard(periferico: ItemPeriferico) {
+    val context = LocalContext.current;
     Card(
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -148,6 +155,21 @@ fun PerifericoCard(periferico: ItemPeriferico) {
                 checked = periferico.activo,
                 onCheckedChange = { }
             )
+
+            Button(onClick = { /*TODO*/ },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.width(280.dp),
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.White,
+                    containerColor = Color.Black
+                )
+            ) {
+                Text(text = "Geolocalizar",
+                    modifier = Modifier.clickable {
+                        var navigate = Intent(context, ContentActivity::class.java);
+                        context.startActivity(navigate);
+                    })
+            }
         }
     }
 }
